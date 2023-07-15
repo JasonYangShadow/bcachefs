@@ -801,8 +801,10 @@ static int check_snapshot(struct btree_trans *trans,
 	if (ret < 0)
 		goto err;
 
-	if (fsck_err_on(!ret, c, "snapshot with bad skiplist field:\n  %s",
-			(bch2_bkey_val_to_text(&buf, c, k), buf.buf))) {
+	if (!ret &&
+	    (c->sb.version_upgrade_complete < bcachefs_metadata_version_snapshot_skiplists ||
+	     fsck_err(c, "snapshot with bad skiplist field:\n  %s",
+		      (bch2_bkey_val_to_text(&buf, c, k), buf.buf)))) {
 		u = bch2_bkey_make_mut_typed(trans, iter, &k, 0, snapshot);
 		ret = PTR_ERR_OR_ZERO(u);
 		if (ret)
